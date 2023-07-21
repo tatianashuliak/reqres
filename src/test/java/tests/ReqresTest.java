@@ -5,11 +5,11 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import reqres.ResourcesList;
 import reqres.User;
 import reqres.UsersList;
 
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.when;
+import static io.restassured.RestAssured.*;
 import static java.net.HttpURLConnection.*;
 
 public class ReqresTest {
@@ -30,7 +30,7 @@ public class ReqresTest {
     }
 
     @Test
-    public void getListUsersTest() {
+    public void verifyThatUserExistsTest() {
         String body = given()
                 .when()
                 .get("https://reqres.in/api/users?page=2")
@@ -40,138 +40,152 @@ public class ReqresTest {
                 .extract().body().asString();
         UsersList usersList = new Gson().fromJson(body, UsersList.class);
         String firstName = usersList.getData().get(3).getFirstName();
-        System.out.println(firstName);
+        Assert.assertEquals(firstName, "Byron");
     }
 
     @Test
-    public void getSingleUserTest(){
-        given()
+    public void checkSingleUserTest(){
+        Response response = given()
                 .when()
                 .get("https://reqres.in/api/users/2")
                 .then()
                 .log().all()
-                .statusCode(HTTP_OK);
+                .extract().response();
+        Assert.assertEquals(response.statusCode(), HTTP_OK);
     }
 
     @Test
-    public void getSingleUserNotFoundTest() {
-        given()
+    public void verifyThatUserNotFoundTest() {
+        Response response = given()
                 .when()
                 .get("https://reqres.in/api/users/23")
                 .then()
                 .log().all()
-                .statusCode(HTTP_NOT_FOUND);
+                .extract().response();
+        Assert.assertEquals(response.statusCode(), HTTP_NOT_FOUND);
     }
 
     @Test
-    public void getListResourceTest() {
-        given()
+    public void checkNumberOfResourcesTest() {
+        String body = given()
                 .when()
                 .get("https://reqres.in/api/unknown")
                 .then()
                 .log().all()
-                .statusCode(HTTP_OK);
+                .statusCode(HTTP_OK)
+                .extract().body().asString();
+        ResourcesList resourcesList = new Gson().fromJson(body, ResourcesList.class);
+        int numberOfResources = resourcesList.getData().size();
+        Assert.assertEquals(numberOfResources, 6);
     }
 
     @Test
-    public void getSingleResourceTest() {
-        given()
+    public void checkSingleResourceTest() {
+        Response response = given()
                 .when()
                 .get("https://reqres.in/api/unknown/2")
                 .then()
                 .log().all()
-                .statusCode(HTTP_OK);
+                .extract().response();
+      Assert.assertEquals(response.statusCode(), HTTP_OK);
+
     }
 
     @Test
-    public void getSingleResourceNotFoundTest() {
-        given()
+    public void verifyThatResourceNotFoundTest() {
+        Response response = given()
                 .when()
                 .get("https://reqres.in/api/unknown/23")
                 .then()
                 .log().all()
-                .statusCode(HTTP_NOT_FOUND);
+                .extract().response();
+        Assert.assertEquals(response.statusCode(), HTTP_NOT_FOUND);
     }
 
     @Test
-    public void putUpdateUserTest() {
+    public void checkPutUpdateUserTest() {
         User user = User.builder()
                 .name("morphius")
                 .job("zion resident")
                 .build();
-        given()
+       Response response = given()
                 .body(user)
                 .when()
                 .put("https://reqres.in/api/users/2")
                 .then()
                 .log().all()
-                .statusCode(HTTP_OK);
+                .extract().response();
+       Assert.assertEquals(response.statusCode(), HTTP_OK);
     }
 
     @Test
-    public void patchUpdateUserTest() {
+    public void checkPatchUpdateUserTest() {
         User user = User.builder()
                 .name("morphius")
                 .job("zion resident")
                 .build();
-        given()
+        Response response = given()
                 .body(user)
                 .when()
                 .patch("https://reqres.in/api/users/2")
                 .then()
                 .log().all()
-                .statusCode(HTTP_OK);
+                .extract().response();
+        Assert.assertEquals(response.statusCode(), HTTP_OK);
     }
 
     @Test
-    public void deleteUserTest() {
-        given()
+    public void checkDeleteUserTest() {
+        Response response = given()
                 .when()
                 .log().all()
                 .delete("https://reqres.in/api/users/2")
                 .then()
                 .log().all()
-                .statusCode(HTTP_NO_CONTENT);
+                .extract().response();
+        Assert.assertEquals(response.statusCode(), HTTP_NO_CONTENT);
     }
 
     @Test
-    public void postRegisterIsSuccessful() {
+    public void checkRegisterNewUserIsSuccessfulTest() {
         User user = User.builder()
                 .email("eve.holt@reqres.in")
                 .password("pistol")
                 .build();
-        given()
+        Response response = given()
                 .contentType(ContentType.JSON)
                 .body(user)
                 .when()
                 .post("https://reqres.in/api/register")
                 .then()
                 .log().all()
-                .statusCode(HTTP_OK);
+                .extract().response();
+        Assert.assertEquals(response.statusCode(), HTTP_OK);
     }
 
     @Test
-    public void postRegisterIsUnsuccessfulTest() {
+    public void CheckRegisterIsUnsuccessfulTest() {
         User user = User.builder()
                 .email("sydney@fife")
                 .build();
-        given()
+        Response response = given()
                 .contentType(ContentType.JSON)
                 .body(user)
                 .when()
                 .post("https://reqres.in/api/register")
                 .then()
                 .log().all()
-                .statusCode(HTTP_BAD_REQUEST);
+                .extract().response();
+        Assert.assertEquals(response.statusCode(), HTTP_BAD_REQUEST);
     }
 
     @Test
-    public void postLoginIsSuccessful() {
+    public void checkLoginIsSuccessfulTest() {
         User user = User.builder()
                 .email("eve.holt@reqres.in")
                 .password("cityslicka")
                 .build();
-        given()
+        Response response = given()
                 .contentType(ContentType.JSON)
                 .body(user)
                 .when()
@@ -179,32 +193,37 @@ public class ReqresTest {
                 .post("https://reqres.in/api/login")
                 .then()
                 .log().all()
-                .statusCode(HTTP_OK);
+                .extract().response();
+        Assert.assertEquals(response.statusCode(), HTTP_OK);
     }
 
     @Test
-    public void postLoginIsUnsuccessfulTest() {
+    public void checkLoginIsUnsuccessfulTest() {
         User user = User.builder()
                 .email("peter@klaven")
                 .build();
-        given()
+        Response response = given()
                 .contentType(ContentType.JSON)
                 .body(user)
                 .when()
                 .post("https://reqres.in/api/login")
                 .then()
                 .log().all()
-                .statusCode(HTTP_BAD_REQUEST);
+                .extract().response();
+        Assert.assertEquals(response.statusCode(), HTTP_BAD_REQUEST);
     }
 
     @Test
-    public void getDelayedResponseTest() {
-        given()
+    public void checkNumberOfDelayedUsersTest() {
+        String body = given()
                 .when()
                 .get("https://reqres.in/api/users?delay=3")
                 .then()
                 .log().all()
-                .statusCode(HTTP_OK);
+                .extract().asString();
+        UsersList usersList = new Gson().fromJson(body, UsersList.class);
+        int numberOfUsers = usersList.getData().size();
+        Assert.assertEquals(numberOfUsers, 6);
     }
 
 

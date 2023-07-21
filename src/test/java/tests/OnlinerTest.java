@@ -10,7 +10,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 public class OnlinerTest {
     @Test
-    public void getCurrencyUsdRateTest() {
+    public void checkGettingCurrencyInUsdRateTest() {
         Response response = given()
                 .log().all()
                 .when()
@@ -22,14 +22,15 @@ public class OnlinerTest {
     }
 
     @Test
-    public void getCurrencyEurRateTest() {
-        given()
+    public void checkGettingCurrencyInEurRateTest() {
+        Response response = given()
                 .log().all()
                 .when()
                 .get("https://www.onliner.by/sdapi/kurs/api/bestrate?currency=EUR&type=nbrb")
                 .then()
                 .log().all()
-                .statusCode(HTTP_OK);
+                .extract().response();
+        Assert.assertEquals(response.statusCode(), HTTP_OK);
     }
 
     @Test
@@ -41,6 +42,6 @@ public class OnlinerTest {
                 .then()
                 .log().all()
                 .statusCode(HTTP_OK)
-                .body("amount", equalTo("3,5475"));
+                .body("amount", equalTo("3,3266"));
     }
 }
